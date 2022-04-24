@@ -5,7 +5,7 @@ public class FirstPersonContoller : MonoBehaviour
 {
     private bool isSprinting => canSprint && Input.GetKey(sprintKey);
     private bool shouldJump => canJump && Input.GetKeyDown(jumpKey) && characterController.isGrounded;
-    private bool shouldCrouch =>  Input.GetKeyDown(crouchKey) && !duringCrouchAnimation && characterController.isGrounded;
+    private bool shouldCrouch => Input.GetKeyDown(crouchKey) && !duringCrouchAnimation && characterController.isGrounded;
     public bool CanMove { get; private set; } = true;
 
     [Header("Functional Options")]
@@ -14,7 +14,7 @@ public class FirstPersonContoller : MonoBehaviour
     [SerializeField] private bool canCrouch = true;
     [SerializeField] private bool canUseHeadBob = true;
     [SerializeField] private bool willSlideOnSlopes = true;
-    [SerializeField] private bool canZoom = true;
+    //[SerializeField] private bool canZoom = true;
     [SerializeField] private bool canInteract = true;
     [SerializeField] private bool useFootSteps = true;
     [SerializeField] private bool enableStaminaBar = true;
@@ -23,8 +23,10 @@ public class FirstPersonContoller : MonoBehaviour
     [SerializeField] private KeyCode sprintKey = KeyCode.LeftShift;
     [SerializeField] private KeyCode jumpKey = KeyCode.Space;
     [SerializeField] private KeyCode crouchKey = KeyCode.LeftControl;
-    [SerializeField] private KeyCode zoomKey = KeyCode.Mouse1; //right button
-    [SerializeField] private KeyCode interactKey = KeyCode.Mouse0; //right button
+    //[SerializeField] private KeyCode zoomKey = KeyCode.Mouse1; //right button
+    [SerializeField] private KeyCode interactKey = KeyCode.Mouse0; //left button
+
+
 
     [Header("Movement Parametrs")]
     [SerializeField] private float walkSpeed = 3.0f;
@@ -34,7 +36,7 @@ public class FirstPersonContoller : MonoBehaviour
     [SerializeField] private float sprintStaminaUsage = 0.1f;
     [SerializeField] private float jumpStaminaUsage = 10f;
 
-  
+
     [Header("Look Parametrs")]
     [SerializeField, Range(1, 10)] private float lookSpeedX = 2.0f;
     [SerializeField, Range(1, 10)] private float lookSpeedY = 2.0f;
@@ -49,8 +51,8 @@ public class FirstPersonContoller : MonoBehaviour
     [SerializeField] private float crouchHeight = 0.5f;
     [SerializeField] private float standingHeight = 2f;
     [SerializeField] private float timeToCrouch = 0.25f;
-    [SerializeField] private Vector3 crouchingCenter = new Vector3(0,0.5f, 0);
-    [SerializeField] private Vector3 standingCenter = new Vector3(0,0.0f,0);
+    [SerializeField] private Vector3 crouchingCenter = new Vector3(0, 0.5f, 0);
+    [SerializeField] private Vector3 standingCenter = new Vector3(0, 0.0f, 0);
     private bool isCrouching;
     private bool duringCrouchAnimation;
 
@@ -65,11 +67,11 @@ public class FirstPersonContoller : MonoBehaviour
     private float defaultYPos = 0;
     private float timer;
 
-    [Header("Zoom Parametrs")]
-    [SerializeField] private float timeToZoom = 0.3f;
-    [SerializeField] private float zoomFOV = 30f;
-    private float defaultFOV;
-    private Coroutine zoomRoutine;
+    //[Header("Zoom Parametrs")]
+    //[SerializeField] private float timeToZoom = 0.3f;
+    //[SerializeField] private float zoomFOV = 30f;
+    //private float defaultFOV;
+    //private Coroutine zoomRoutine;
 
     [Header("Footsteps Parametrs")]
     [SerializeField] private float baseStepSpeed = 0.5f;
@@ -83,7 +85,7 @@ public class FirstPersonContoller : MonoBehaviour
     private float GetCurrentOffset => isCrouching ? baseStepSpeed * crouchStepMultiplier : isSprinting ? baseStepSpeed * sprintStepMultiplier : baseStepSpeed;
 
 
-    
+
 
 
     //SLIDER PARAMETRS
@@ -91,14 +93,14 @@ public class FirstPersonContoller : MonoBehaviour
     private Vector3 realSlopeDirection;
     private bool isSliding
     {
-           get
+        get
         {
-            Debug.DrawRay(transform.position, Vector3.down, Color.red);
+            // Debug.DrawRay(transform.position, Vector3.down, Color.red);
             if (characterController.isGrounded && Physics.Raycast(transform.position, Vector3.down, out RaycastHit slopeHit, 2.0f))
             {
                 hitPointNormal = slopeHit.normal;
                 realSlopeDirection = Vector3.Cross(Vector3.Cross(slopeHit.normal, Vector3.down), slopeHit.normal);
-                return Vector3.Angle(realSlopeDirection, Vector3.up) > characterController.slopeLimit;  
+                return Vector3.Angle(realSlopeDirection, Vector3.up) > characterController.slopeLimit;
             }
             else return false;
         }
@@ -126,8 +128,8 @@ public class FirstPersonContoller : MonoBehaviour
     {
         playerCamera = GetComponentInChildren<Camera>();
         characterController = GetComponent<CharacterController>();
-        defaultYPos=playerCamera.transform.localPosition.y;//for headbob, we want to return original camera position
-        defaultFOV = playerCamera.fieldOfView;
+        defaultYPos = playerCamera.transform.localPosition.y;//for headbob, we want to return original camera position
+        //defaultFOV = playerCamera.fieldOfView; //Uncomment for zoom 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
@@ -140,17 +142,16 @@ public class FirstPersonContoller : MonoBehaviour
             HandleMovementInput();//ввод передвижения
             HandleMouseLock();//мышкой крутим ци не
             if (canJump)//прыжок
-                 HandleJump();
+                HandleJump();
 
             if (canCrouch)
                 HandleCrouch();
             if (canUseHeadBob)
                 HandleHeadBob();
-            if (canZoom)
-                HandleZoom();
+            //if (canZoom)
+            //    HandleZoom();
             if (useFootSteps)
                 HandleFootsteps();
-
             if (canInteract)
             {
                 HandleInteractionCheck();
@@ -168,7 +169,7 @@ public class FirstPersonContoller : MonoBehaviour
         {
             currentInput = new Vector2(sprintSpeed * Input.GetAxis("Vertical"), moveStatement * Input.GetAxis("Horizontal"));//говорим персонажу, что бежим
             if (enableStaminaBar) StaminaBar.instance.UseStamina(sprintStaminaUsage);//отнимаем стамину, переменная в инспекторе
- 
+
         }
         else currentInput = new Vector2(moveStatement * Input.GetAxis("Vertical"), moveStatement * Input.GetAxis("Horizontal"));
         float moveDirectionY = moveDirection.y;
@@ -185,7 +186,7 @@ public class FirstPersonContoller : MonoBehaviour
             moveDirection += new Vector3(hitPointNormal.x, -hitPointNormal.y, hitPointNormal.z) * slopeSpeed;
 
         characterController.Move(moveDirection * Time.deltaTime); //move into direction
-        
+
 
     }
     //=================MOUSE ROTATION====================
@@ -194,14 +195,14 @@ public class FirstPersonContoller : MonoBehaviour
         rotationX -= Input.GetAxis("Mouse Y") * lookSpeedY; //rotation on x (up & down);
         rotationX = Mathf.Clamp(rotationX, -upperLookLimit, lowerLookLimit);// НУЖНО РАЗОБРАТЬСЯ ЧЕ ЗА КЛАМП
         playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);//хз
-        transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X")*lookSpeedX, 0);//хз
+        transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * lookSpeedX, 0);//хз
     }
     //==================JUMPING========================
     private void HandleJump()//прыжок
     {
         if (shouldJump)
         {
-            if(enableStaminaBar) StaminaBar.instance.UseStamina(jumpStaminaUsage);//отнимаем стамину, переменная в инспекторe
+            if (enableStaminaBar) StaminaBar.instance.UseStamina(jumpStaminaUsage);//отнимаем стамину, переменная в инспекторe
             moveDirection.y = jumpForce;
         }
     }
@@ -225,10 +226,10 @@ public class FirstPersonContoller : MonoBehaviour
         Vector3 targetCenter = isCrouching ? standingCenter : crouchingCenter;
         Vector3 currentCenter = characterController.center;
 
-        while(timeElapsed < timeToCrouch)
+        while (timeElapsed < timeToCrouch)
         {
-            characterController.height = Mathf.Lerp(currentHeight, targetHeight, timeElapsed/timeToCrouch);
-            characterController.center = Vector3.Lerp(currentCenter, targetCenter, timeElapsed/timeToCrouch);
+            characterController.height = Mathf.Lerp(currentHeight, targetHeight, timeElapsed / timeToCrouch);
+            characterController.center = Vector3.Lerp(currentCenter, targetCenter, timeElapsed / timeToCrouch);
             timeElapsed += Time.deltaTime;
             yield return null;
         }
@@ -243,7 +244,7 @@ public class FirstPersonContoller : MonoBehaviour
     private void HandleHeadBob()
     {
         if (!characterController.isGrounded) return;//if we are not on the ground, we should`t bob
-        if(Mathf.Abs(moveDirection.x) > 0.1f || Mathf.Abs(moveDirection.z) > 0.1f)//return abs way |move.direction|
+        if (Mathf.Abs(moveDirection.x) > 0.1f || Mathf.Abs(moveDirection.z) > 0.1f)//return abs way |move.direction|
         {
             timer += Time.deltaTime * (isCrouching ? crouchBobSpeed : isSprinting ? sprintBobSpeed : walkBobSpeed);
             playerCamera.transform.localPosition = new Vector3(
@@ -253,54 +254,54 @@ public class FirstPersonContoller : MonoBehaviour
         }
     }
     //=================ZOOM===========================
-    private void HandleZoom()
-    {
-        if (Input.GetKeyDown(zoomKey))//нажать зум
-        {
-            if(zoomRoutine != null)
-            {
-                StopCoroutine(zoomRoutine);
-                zoomRoutine = null;
-            }
-            zoomRoutine = StartCoroutine(ToggleZoom(true));
-        }
+    //private void HandleZoom()
+    //{
+    //    if (Input.GetKeyDown(zoomKey))//нажать зум
+    //    {
+    //        if(zoomRoutine != null)
+    //        {
+    //            StopCoroutine(zoomRoutine);
+    //            zoomRoutine = null;
+    //        }
+    //        zoomRoutine = StartCoroutine(ToggleZoom(true));
+    //    }
 
-        if (Input.GetKeyUp(zoomKey))//отжать зум
-        {
-            if (zoomRoutine != null)
-            {
-                StopCoroutine(zoomRoutine);
-                zoomRoutine = null;
-            }
-            zoomRoutine = StartCoroutine(ToggleZoom(false));
-        }
-    }
-    private IEnumerator ToggleZoom(bool isEnter)
-    {
-        float targetFOV = isEnter ? zoomFOV : defaultFOV;//needed fov
-        float startingFOV = playerCamera.fieldOfView;//our fov
-        float timeElapsed = 0;//time  elapsed
+    //    if (Input.GetKeyUp(zoomKey))//отжать зум
+    //    {
+    //        if (zoomRoutine != null)
+    //        {
+    //            StopCoroutine(zoomRoutine);
+    //            zoomRoutine = null;
+    //        }
+    //        zoomRoutine = StartCoroutine(ToggleZoom(false));
+    //    }
+    //}
+    //private IEnumerator ToggleZoom(bool isEnter)
+    //{
+    //    float targetFOV = isEnter ? zoomFOV : defaultFOV;//needed fov
+    //    float startingFOV = playerCamera.fieldOfView;//our fov
+    //    float timeElapsed = 0;//time  elapsed
 
-        while (timeElapsed < startingFOV)
-        {
-            playerCamera.fieldOfView = Mathf.Lerp(startingFOV, targetFOV, timeElapsed/timeToZoom);
-            timeElapsed += Time.deltaTime;
-            yield return null;
-        }
+    //    while (timeElapsed < startingFOV)
+    //    {
+    //        playerCamera.fieldOfView = Mathf.Lerp(startingFOV, targetFOV, timeElapsed/timeToZoom);
+    //        timeElapsed += Time.deltaTime;
+    //        yield return null;
+    //    }
 
-        playerCamera.fieldOfView = targetFOV;
-        zoomRoutine = null;
-    }
+    //    playerCamera.fieldOfView = targetFOV;
+    //    zoomRoutine = null;
+    //}
     //=========================INTERACTION===============
     private void HandleInteractionCheck()//const raycast look for objects
     {
-        if(Physics.Raycast(playerCamera.ViewportPointToRay(interactionRayPoint), out RaycastHit hit, interactionDistance))
+        if (Physics.Raycast(playerCamera.ViewportPointToRay(interactionRayPoint), out RaycastHit hit, interactionDistance))
         {
             if (hit.collider.gameObject.layer == 6 && (currentInteractable == null || hit.collider.gameObject.GetInstanceID() != currentInteractable.GetInstanceID()))//layer with interactable and check for update interactable objects
             {
                 hit.collider.TryGetComponent(out currentInteractable);
 
-                if(currentInteractable)
+                if (currentInteractable)
                 {
                     currentInteractable.OnFocus();
                 }
@@ -316,29 +317,30 @@ public class FirstPersonContoller : MonoBehaviour
     }
     private void HandleInteractionInput()//hit interact key
     {
-        if (Input.GetKeyDown(interactKey) && currentInteractable != null && Physics.Raycast(playerCamera.ViewportPointToRay(interactionRayPoint), out RaycastHit hit, interactionDistance, interactLayer)) {
+        if (Input.GetKeyDown(interactKey) && currentInteractable != null && Physics.Raycast(playerCamera.ViewportPointToRay(interactionRayPoint), out RaycastHit hit, interactionDistance, interactLayer))
+        {
             currentInteractable.OnInteract();
         }
 
     }
     //=======================FOOTSTEPS=======
-    private void HandleFootsteps() 
+    private void HandleFootsteps()
     {
         if (!characterController.isGrounded) return;
 
-        if (currentInput == Vector2.zero) return; 
+        if (currentInput == Vector2.zero) return;
 
         footstepTimer -= Time.deltaTime;
 
         if (footstepTimer <= 0)
         {
-            if(Physics.Raycast(playerCamera.transform.position, Vector3.down, out RaycastHit hit, 2))
+            if (Physics.Raycast(playerCamera.transform.position, Vector3.down, out RaycastHit hit, 2))
             {
-                switch(hit.collider.tag)
+                switch (hit.collider.tag)
                 {
                     case "footsteps/WOOD":
                         footstepAudioSource.PlayOneShot(woodClips[Random.Range(0, woodClips.Length - 1)]);
-                        break; 
+                        break;
                     case "footsteps/GRASS":
                         footstepAudioSource.PlayOneShot(grassClips[Random.Range(0, grassClips.Length - 1)]);
                         break;

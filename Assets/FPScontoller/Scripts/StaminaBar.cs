@@ -42,7 +42,6 @@ public class StaminaBar : MonoBehaviour
     {
         if (currentStamina - amount >= 0)
         {
-            Debug.Log(amount);
             staminaBar.gameObject.SetActive(true);
             currentStamina -= amount;
             staminaBar.value = currentStamina;
