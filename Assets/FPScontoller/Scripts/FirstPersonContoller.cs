@@ -8,6 +8,7 @@ public class FirstPersonContoller : MonoBehaviour
     private bool shouldCrouch => Input.GetKeyDown(crouchKey) && !duringCrouchAnimation && characterController.isGrounded;
     public bool CanMove { get; private set; } = true;
 
+    #region FunctionalOptions
     [Header("Functional Options")]
     [SerializeField] public bool canSprint = true;
     [SerializeField] public bool canJump = true;
@@ -18,16 +19,18 @@ public class FirstPersonContoller : MonoBehaviour
     [SerializeField] private bool canInteract = true;
     [SerializeField] private bool useFootSteps = true;
     [SerializeField] private bool enableStaminaBar = true;
+    #endregion
 
+    #region Controls
     [Header("Controls")]
     [SerializeField] private KeyCode sprintKey = KeyCode.LeftShift;
     [SerializeField] private KeyCode jumpKey = KeyCode.Space;
     [SerializeField] private KeyCode crouchKey = KeyCode.LeftControl;
     //[SerializeField] private KeyCode zoomKey = KeyCode.Mouse1; //right button
     [SerializeField] private KeyCode interactKey = KeyCode.Mouse0; //left button
+    #endregion
 
-
-
+    #region MovementParametrs
     [Header("Movement Parametrs")]
     [SerializeField] private float walkSpeed = 3.0f;
     [SerializeField] private float sprintSpeed = 6.0f;
@@ -35,18 +38,23 @@ public class FirstPersonContoller : MonoBehaviour
     [SerializeField] private float slopeSpeed = 5f;
     [SerializeField] private float sprintStaminaUsage = 0.1f;
     [SerializeField] private float jumpStaminaUsage = 10f;
+    #endregion
 
-
+    #region LookParametrs
     [Header("Look Parametrs")]
     [SerializeField, Range(1, 10)] private float lookSpeedX = 2.0f;
     [SerializeField, Range(1, 10)] private float lookSpeedY = 2.0f;
     [SerializeField, Range(1, 180)] private float upperLookLimit = 80.0f;
     [SerializeField, Range(1, 180)] private float lowerLookLimit = 80.0f;
+    #endregion
 
+    #region JumpParametrs
     [Header("Jump Parametrs")]
     [SerializeField] private float jumpForce = 8.0f;
     [SerializeField] private float gravity = 30.0f;
+    #endregion
 
+    #region CrouchParametrs
     [Header("Crouch Parametrs")]
     [SerializeField] private float crouchHeight = 0.5f;
     [SerializeField] private float standingHeight = 2f;
@@ -55,8 +63,9 @@ public class FirstPersonContoller : MonoBehaviour
     [SerializeField] private Vector3 standingCenter = new Vector3(0, 0.0f, 0);
     private bool isCrouching;
     private bool duringCrouchAnimation;
+    #endregion
 
-
+    #region HeadBobParametrs
     [Header("Headbob Parametrs")]
     [SerializeField] private float walkBobSpeed = 14f;
     [SerializeField] private float sprintBobSpeed = 18f;
@@ -66,12 +75,17 @@ public class FirstPersonContoller : MonoBehaviour
     [SerializeField] private float crouchBobAmount = 0.025f;
     private float defaultYPos = 0;
     private float timer;
+    #endregion
 
+    #region ZoomParametrs
     //[Header("Zoom Parametrs")]
     //[SerializeField] private float timeToZoom = 0.3f;
     //[SerializeField] private float zoomFOV = 30f;
     //private float defaultFOV;
     //private Coroutine zoomRoutine;
+    #endregion
+
+    #region FootstepsParametrs
 
     [Header("Footsteps Parametrs")]
     [SerializeField] private float baseStepSpeed = 0.5f;
@@ -81,11 +95,17 @@ public class FirstPersonContoller : MonoBehaviour
     [SerializeField] private AudioClip[] woodClips = default;
     [SerializeField] private AudioClip[] metalClips = default;
     [SerializeField] private AudioClip[] grassClips = default;
+    [SerializeField] private AudioClip[] bedClips = default;
     private float footstepTimer = 0;
     private float GetCurrentOffset => isCrouching ? baseStepSpeed * crouchStepMultiplier : isSprinting ? baseStepSpeed * sprintStepMultiplier : baseStepSpeed;
+    #endregion
 
+    #region AnimController
 
-
+    [Header("Animation controller")]
+    [SerializeField] private GameObject dummy;
+    private Animator animator;
+    #endregion
 
 
     //SLIDER PARAMETRS
@@ -106,13 +126,13 @@ public class FirstPersonContoller : MonoBehaviour
         }
     }
 
-
+    #region Interaction
     [Header("Interaction")]
     [SerializeField] private Vector3 interactionRayPoint = default;
     [SerializeField] private float interactionDistance = default;
     [SerializeField] private LayerMask interactLayer = default;
     private Interactable currentInteractable;
-
+    #endregion
 
 
 
@@ -132,6 +152,7 @@ public class FirstPersonContoller : MonoBehaviour
         //defaultFOV = playerCamera.fieldOfView; //Uncomment for zoom 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        animator = dummy.GetComponent<Animator>(); 
     }
 
 
@@ -167,11 +188,22 @@ public class FirstPersonContoller : MonoBehaviour
         float moveStatement = isCrouching ? crouchSpeed : isSprinting ? sprintSpeed : walkSpeed;
         if (isSprinting && !isCrouching)//если бежим, надо проверить, если у персонажа выносливость
         {
+            animator.SetBool("Walk", false);
+            animator.SetBool("Run", true);
             currentInput = new Vector2(sprintSpeed * Input.GetAxis("Vertical"), moveStatement * Input.GetAxis("Horizontal"));//говорим персонажу, что бежим
             if (enableStaminaBar) StaminaBar.instance.UseStamina(sprintStaminaUsage);//отнимаем стамину, переменная в инспекторе
 
         }
-        else currentInput = new Vector2(moveStatement * Input.GetAxis("Vertical"), moveStatement * Input.GetAxis("Horizontal"));
+        else {
+            animator.SetBool("Run", false);
+            animator.SetBool("Walk", true);
+            currentInput = new Vector2(moveStatement * Input.GetAxis("Vertical"), moveStatement * Input.GetAxis("Horizontal")); }
+        if(currentInput == Vector2.zero)
+        {
+            animator.SetBool("Run", false);
+            animator.SetBool("Walk", false);
+            animator.SetBool("Iddle", true);
+        }
         float moveDirectionY = moveDirection.y;
         moveDirection = (transform.TransformDirection(Vector3.forward) * currentInput.x) + (transform.TransformDirection(Vector3.right) * currentInput.y);
         moveDirection.y = moveDirectionY;
@@ -334,8 +366,9 @@ public class FirstPersonContoller : MonoBehaviour
 
         if (footstepTimer <= 0)
         {
-            if (Physics.Raycast(playerCamera.transform.position, Vector3.down, out RaycastHit hit, 2))
+            if (Physics.Raycast(characterController.transform.position, Vector3.down, out RaycastHit hit,  3))
             {
+                Debug.Log(hit.collider.tag);
                 switch (hit.collider.tag)
                 {
                     case "footsteps/WOOD":
@@ -347,11 +380,18 @@ public class FirstPersonContoller : MonoBehaviour
                     case "footsteps/METAL":
                         footstepAudioSource.PlayOneShot(metalClips[Random.Range(0, metalClips.Length - 1)]);
                         break;
+                    case "footsteps/BED":
+                        Debug.Log(hit.collider.tag);
+                        footstepAudioSource.PlayOneShot(bedClips[Random.Range(0, bedClips.Length - 1)]);
+                        break;
                     default:
-                        footstepAudioSource.PlayOneShot(woodClips[Random.Range(0, woodClips.Length - 1)]);//если нет никакой поверхности, пускай будет дерево
+                        Debug.Log(hit.collider.tag);
+                        footstepAudioSource.PlayOneShot(grassClips[Random.Range(0, grassClips.Length - 1)]);//если нет никакой поверхности, пускай будет дерево
                         break;
                 }
+                Debug.Log(hit.collider.tag);
             }
+
             footstepTimer = GetCurrentOffset;
         }
     }

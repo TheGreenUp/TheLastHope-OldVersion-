@@ -4,12 +4,19 @@ using UnityEngine;
 
 public class TestInteractable : Interactable
 {
+    public GameObject player;
     public override void OnFocus()
     {
         print("LOOKING AT " + gameObject.name);
     }
 
     public override void OnInteract()
+    {
+        print("INTERACTED WITH " + gameObject.name);
+        player.GetComponent<Collectables>().addNote();
+        Destroy(gameObject);
+    }
+    public override void OnInteract(GameObject player)
     {
         print("INTERACTED WITH " + gameObject.name);
         Destroy(gameObject);

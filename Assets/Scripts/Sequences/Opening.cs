@@ -2,8 +2,6 @@ using System.Collections;
 
 using UnityEngine;
 using UnityEngine.UI;
-using UnityStandardAssets.Characters.FirstPerson;
-
 public class Opening : MonoBehaviour
 {
     public GameObject player;
@@ -12,7 +10,7 @@ public class Opening : MonoBehaviour
 
     void Start()
     {
-        player.GetComponent<FirstPersonController>().enabled = false;//убираем контроль персонажа
+        player.GetComponent<FirstPersonContoller>().enabled = false;//даем контроль над персонажем
         StartCoroutine(ScenePlayer());  
 
     }
@@ -23,7 +21,7 @@ public class Opening : MonoBehaviour
         textbox.GetComponent<Text>().text = "Ну че залупыш проснулся да...";//текст
         yield return new WaitForSeconds(2f);//ждем еще полсекунды
         textbox.GetComponent<Text>().text = "";//убираем текст
-        player.GetComponent<FirstPersonController>().enabled = true;//даем контроль над персонажем
+        player.GetComponent<FirstPersonContoller>().enabled = true;//даем контроль над персонажем
     }
 
 }

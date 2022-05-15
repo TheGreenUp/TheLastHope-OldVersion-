@@ -27,7 +27,6 @@ public class DoorCellOpen : MonoBehaviour
         {
             if (theDistance < 1.2 && this.GetComponent<BoxCollider>().enabled == true)//когда дверь закрыта
             {
-                this.GetComponent<BoxCollider>().enabled = false;
                 actionKey.SetActive(false);
                 actionText.SetActive(false);
                 door.GetComponent<Animation>().Play("FirstDoorOpenAnim");
